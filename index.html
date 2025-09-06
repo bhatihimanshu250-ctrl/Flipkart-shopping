@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>Flipkart-Like  — Full Flow (PhonePe/Paytm)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --blue:#2874f0; --ink:#212121; --mut:#878787; --bg:#f1f3f6; --green:#388e3c; --orange:#fb641b;
+      --yellow:#ffd814; --card:#fff; --shadow:0 1px 6px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{font-family:Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+    img{display:block;max-width:100%}
+    .wrap{max-width:520px;margin:0 auto;min-height:100vh}
+
+    /* Header */
+    .hdr{position:sticky;top:0;z-index:200;background:var(--blue);color:#fff;padding:10px 12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px}
+    .hdr .brand{font-weight:700;font-size:16px}
+    .hdr .search{margin-left:8px;flex:1;background:#fff;border-radius:6px;padding:6px 10px}
+    .hdr input{width:100%;border:0;outline:0;font-size:14px;color:#111}
+    .cart{margin-left:auto;position:relative}
+    .badge{position:absolute;right:-6px;top:-6px;background:#ff3b3b;color:#fff;font-weight:700;font-size:10px;line-height:1;padding:2px 6px;border-radius:999px;box-shadow:var(--shadow)}
+
+    /* Home layout */
+    .cats{background:var(--card);padding:8px;border-bottom:1px solid #e0e0e0}
+    .catrow{display:flex;justify-content:space-between;gap:6px}
+    .cat{flex:1;text-align:center}
+    .cico{width:40px;height:40px;border-radius:50%;background:#fff;margin:0 auto 4px;display:grid;place-items:center;font-size:18px;box-shadow:var(--shadow)}
+    .bannerWrap{background:#003c97;padding:8px}
+    .banner img{width:100%;border-radius:6px;box-shadow:var(--shadow)}
+    .sec{background:var(--card);margin-top:8px;padding:10px;border-top:8px solid var(--bg)}
+    .secHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+    .secHead h3{margin:0;font-size:16px;font-weight:700;color:#314159}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;padding-bottom:20px}
+    .card{background:var(--card);border-radius:8px;box-shadow:var(--shadow);padding:8px;text-align:center;font-size:12px;cursor:pointer}
+    .pimg{width:110px;height:110px;margin:0 auto 6px;object-fit:cover;border-radius:6px;background:#f5f7fa}
+    .title{font-size:12px;font-weight:500;color:#212121;line-height:1.25;height:30px;overflow:hidden}
+    .off{color:var(--green);font-weight:700;font-size:11px;margin:2px 0}
+    .mrp{color:#9e9e9e;text-decoration:line-through;margin-left:4px;font-size:10px}
+    .price{font-size:14px;font-weight:900;margin:2px 0;color:#212121}
+    .assured{display:inline-flex;align-items:center;gap:4px;background:#eef6ff;border-radius:999px;padding:2px 6px;font-size:10px;font-weight:700;margin-top:2px}
+    .assured::before {content:'';display:inline-block;width:16px;height:16px;background:url('https://i.postimg.cc/MpCmtHmL/images-27-removebg-preview.png') no-repeat center/contain;}
+
+    /* Detail overlay (Product Page) */
+    .overlay{display:none;position:fixed;inset:0;z-index:300;background:#fff}
+    .overlay.active{display:block}
+    .overlay-inner{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+    .backbar{display:flex;align-items:center;gap:8px;padding:10px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:310}
+    .backbar .back{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;background:#f3f4f6;cursor:pointer}
+    .pd-scroll{overflow:auto;padding:12px;padding-bottom:140px;flex:1}
+    .pd-hero{background:#fff;padding:10px;border-radius:8px}
+    .pd-img{width:100%;height:320px;object-fit:contain;background:#fff;border-radius:8px}
+    .pd-body{padding:12px}
+    .pd-title{font-size:18px;font-weight:700;line-height:1.25}
+    .rating{display:flex;align-items:center;gap:8px;margin-top:8px}
+    .badgeR{background:#2e7d32;color:#fff;font-weight:700;font-size:12px;padding:2px 6px;border-radius:6px}
+    .stars{font-size:14px;color:#ffb700}
+    .rcount{color:#666;font-size:13px}
+    .pd-price{margin-top:10px;display:flex;align-items:center;gap:8px}
+    .pd-price .sp{font-size:22px;font-weight:900}
+    .pd-price .mrp{font-size:13px;color:#9e9e9e;text-decoration:line-through}
+    .pd-price .off{font-size:13px;color:var(--green);font-weight:700}
+    .pd-meta{margin-top:10px;color:#444;font-size:13px}
+    .pd-section{margin-top:16px;border-top:8px solid var(--bg);padding:12px}
+    .pd-section h4{font-size:15px;margin-bottom:8px}
+    .specs{width:100%;border-collapse:collapse}
+    .specs td{font-size:13px;padding:6px;border-bottom:1px solid #eee}
+    .specs td:first-child{color:#666;width:38%}
+    .pd-cta{position:fixed;left:0;right:0;bottom:0;z-index:320;background:#fff;padding:12px;box-shadow:0 -8px 30px rgba(0,0,0,0.08);display:flex;gap:10px;max-width:520px;margin:0 auto}
+    .btn-cta{flex:1;padding:12px 10px;font-weight:800;border-radius:8px;border:0;cursor:pointer;font-size:15px}
+    .buy{background:var(--orange);color:#fff}
+    .cartBtn{background:var(--yellow);color:#111;border:0}
+
+    /* Checkout (Address) */
+    #checkout{display:none;position:fixed;inset:0;z-index:330;background:#fff}
+    #checkout.active{display:block}
+    .co-inner{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+    .co-top{display:flex;align-items:center;padding:10px;border-bottom:1px solid #eee;background:#fff}
+    .co-top .back{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;background:#f3f4f6;cursor:pointer;margin-right:8px}
+    .steps{display:flex;align-items:center;gap:8px;padding:12px 10px}
+    .step{flex:1;text-align:center;font-size:13px;color:var(--mut)}
+    .co-scroll{overflow:auto;padding:14px;padding-bottom:120px;flex:1}
+    .form-row{margin-bottom:12px}
+    label.small{font-size:12px;color:#666;margin-bottom:6px;display:block}
+    input[type="text"], input[type="tel"], input[type="number"], select, textarea{
+      width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:15px;background:#fff;
+    }
+    .two-col{display:flex;gap:10px}
+    .two-col .col{flex:1}
+    .save-bar{position:fixed;left:0;right:0;bottom:0;z-index:340;padding:14px;background:transparent;max-width:520px;margin:0 auto}
+    .save-btn{width:100%;background:var(--orange);color:#fff;padding:14px;border-radius:8px;border:0;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(251,100,27,0.18)}
+
+    /* Order Summary */
+    #orderSummary{display:none;position:fixed;inset:0;z-index:350;background:#fff}
+    #orderSummary.active{display:block}
+    .os-inner{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+    .os-top{display:flex;align-items:center;padding:10px;border-bottom:1px solid #eee;background:#fff}
+    .os-top .back{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;background:#f3f4f6;cursor:pointer;margin-right:8px}
+    .os-scroll{overflow:auto;padding:14px;padding-bottom:140px;flex:1}
+    .prod-row{display:flex;gap:10px;align-items:flex-start}
+    .prod-row img{width:110px;height:110px;object-fit:cover;border-radius:8px;background:#f5f7fa}
+    .addr-box{background:#fff;padding:10px;border-radius:8px;border:1px solid #eee;margin-top:10px}
+    .price-box{background:#fff;padding:10px;border-radius:8px;border:1px solid #eee;margin-top:12px}
+    .line{display:flex;justify-content:space-between;padding:8px 0;color:#333;font-size:14px;border-bottom:1px solid #f1f1f1}
+    .line.total{font-weight:900;font-size:18px;border-bottom:none}
+    .continue-bar{position:fixed;left:0;right:0;bottom:0;z-index:360;padding:12px;background:transparent;max-width:520px;margin:0 auto}
+    .continue-btn{width:100%;background:#2e7d32;color:#fff;padding:14px;border-radius:8px;border:0;font-size:17px;font-weight:800;cursor:pointer}
+
+    /* Payment Page (photo-like) */
+    #paymentPage{display:none;position:fixed;inset:0;z-index:370;background:#fff}
+    #paymentPage.active{display:block}
+    .pay-inner{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+    .pay-top{display:flex;align-items:center;padding:10px;border-bottom:1px solid #eee;background:#fff}
+    .pay-top .back{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;background:#f3f4f6;cursor:pointer;margin-right:8px}
+    .pay-steps{padding:12px;border-bottom:1px solid #eee}
+    .progress{display:flex;align-items:center;gap:6px;justify-content:space-between}
+    .prog-item{text-align:center;flex:1}
+    .circle{width:32px;height:32px;border-radius:50%;display:inline-grid;place-items:center;background:#fff;border:2px solid #cfdffb;color:var(--blue);font-weight:700}
+    .circle.active{background:var(--blue);color:#fff}
+    .pay-scroll{overflow:auto;padding:18px;padding-bottom:180px;flex:1}
+
+    .pay-timer{text-align:center;color:#e65100;font-weight:800;font-size:20px;margin:12px 0}
+
+    .pay-label{font-size:13px;color:#333;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+    .methods{margin-top:6px}
+    .method-card{border-radius:12px;padding:16px;border:1px solid #e6eefc;display:flex;align-items:center;gap:12px;margin-bottom:12px;cursor:pointer;background:#fff}
+    .method-card img{width:36px;height:36px}
+    .method-card .mtext{font-weight:700;font-size:16px}
+    .method-card.active{outline:3px solid #bee0ff;border-color:#9fcfff;background:#f8fdff}
+
+    .pay-action{padding:12px;position:relative}
+    .pay-cta{width:100%;background:var(--yellow);color:#111;padding:14px;border-radius:12px;border:0;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,0.08)}
+
+    .price-details{margin-top:14px;background:#fff;padding:12px;border-radius:8px;border:1px solid #eee}
+    .price-details .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f1f1}
+    .price-details .row:last-child{border-bottom:0;font-weight:900}
+
+    .pay-bottom-space{height:20px}
+
+    /* Success Modal */
+    #successModal{display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,0.4);align-items:center;justify-content:center}
+    #successModal .modal{background:#fff;padding:18px;border-radius:10px;max-width:420px;width:90%}
+    #successModal h3{margin-bottom:8px}
+
+    @media (max-width:520px){ .pd-img{height:260px} .method-card img{width:34px;height:34px} }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <!-- Header -->
+  <header class="hdr">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:20px;transform:translateY(-2px)">☰</div>
+      <div class="brand">Flipkart <small style="font-weight:400;font-size:12px">Lite • Plus✨</small></div>
+    </div>
+    <div class="search"><input id="searchInput" placeholder="🔍Search Products "></div>
+    <div class="cart" title="Cart">🛒<span class="badge" id="cartCount">0</span></div>
+  </header>
+
+  <!-- Home List -->
+  <main id="home">
+    <section class="cats">
+      <div class="catrow">
+        <div class="cat"><div class="cico">🏷️</div><label>Categories</label></div>
+        <div class="cat"><div class="cico">🔥</div><label>Offers</label></div>
+        <div class="cat"><div class="cico">📱</div><label>Mobiles</label></div>
+        <div class="cat"><div class="cico">👗</div><label>Fashion</label></div>
+        <div class="cat"><div class="cico">💻</div><label>Electronics</label></div>
+      </div>
+    </section>
+
+    <div class="bannerWrap">
+      <section class="banner"><img src="https://i.postimg.cc/Jn2jLRt2/IMG-20250901-193908.jpg" alt="banner"></section>
+    </div>
+
+    <section class="sec">
+      <div class="secHead">
+        <h3>Deals of the Day</h3>
+        <div class="salePill" style="color:#fff; background:red; padding:6px 14px; border-radius:20px; font-weight:bold; font-size:14px; box-shadow:0 2px 6px rgba(0,0,0,0.3); animation:blink 1s infinite;">
+  SALE IS LIVE 🔥
+</div>
+
+<style>
+@keyframes blink {
+  0%{opacity:1}
+  50%{opacity:0.5}
+  100%{opacity:1}
+}
+</style>
+      </div>
+      <div class="tick">⏱ <span id="timer">07:48</span></div>
+      <div id="grid" class="grid" aria-live="polite"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Product Detail Overlay -->
+<div id="detailOverlay" class="overlay" role="dialog" aria-modal="true">
+  <div class="overlay-inner">
+    <div class="backbar">
+      <div class="back" id="detailBack">←</div>
+      <div style="font-weight:700">Product Details</div>
+    </div>
+
+    <div class="pd-scroll" id="pdScroll">
+      <div class="pd-hero"><img id="pdImg" class="pd-img" alt="Product"></div>
+      <div class="pd-body">
+        <div id="pdTitle" class="pd-title"></div>
+        <div class="rating">
+          <span id="pdBadge" class="badgeR">4.3★</span>
+          <span id="pdStars" class="stars">★★★★★</span>
+          <span id="pdRcount" class="rcount">(10,000 रेटिंग्स)</span>
+        </div>
+
+        <div class="pd-price">
+          <span id="pdPrice" class="sp">₹ —</span>
+          <span id="pdMrp" class="mrp">₹ —</span>
+          <span id="pdOff" class="off">—% off</span>
+        </div>
+
+        <div class="pd-meta">
+          <div>ब्रांड: <b id="pdBrand">—</b></div>
+          <div>मॉडल: <b id="pdModel">—</b></div>
+        </div>
+
+        <div class="pd-section">
+          <h4>विवरण</h4>
+          <p id="pdDesc" style="font-size:14px;color:#333;white-space:pre-wrap"></p>
+        </div>
+
+        <div class="pd-section">
+          <h4>Specifications</h4>
+          <table class="specs">
+            <tr><td>Brand</td><td id="spBrand"></td></tr>
+            <tr><td>Model</td><td id="spModel"></td></tr>
+            <tr><td>Category</td><td id="spCat"></td></tr>
+            <tr><td>Warranty</td><td id="spWarr"></td></tr>
+            <tr><td>Delivery</td><td id="spDel"></td></tr>
+          </table>
+        </div>
+
+        <div class="pd-section">
+          <h4>Highlights</h4>
+          <ul id="pdHi" style="padding-left:18px;font-size:14px;color:#333"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="pd-cta">
+      <button id="detailAdd" class="btn-cta cartBtn">Add to Cart</button>
+      <button id="detailBuy" class="btn-cta buy">Buy Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Checkout / Address -->
+<div id="checkout">
+  <div class="co-inner">
+    <div class="co-top">
+      <div class="back" id="coBack">←</div>
+      <div style="font-weight:700">Add delivery address</div>
+    </div>
+
+    <div class="steps" aria-hidden>
+      <div class="step active"><div class="num">1</div><div>Address</div></div>
+      <div class="step"><div class="num">2</div><div>Order Summary</div></div>
+      <div class="step"><div class="num">3</div><div>Payment</div></div>
+    </div>
+
+    <div class="co-scroll">
+      <form id="addressForm" onsubmit="return false;">
+        <div class="form-row"><label class="small">Full Name</label><input id="inpName" type="text" placeholder="Full Name" required></div>
+        <div class="form-row"><label class="small">Mobile number</label><input id="inpMobile" type="tel" placeholder="Mobile number" pattern="[0-9]{10}" required></div>
+        <div class="form-row"><label class="small">Pincode</label><input id="inpPincode" type="number" placeholder="Pincode" required></div>
+        <div class="two-col form-row">
+          <div class="col"><label class="small">City</label><input id="inpCity" type="text" placeholder="City" required></div>
+          <div class="col"><label class="small">State</label>
+            <select id="inpState" required>
+              <option value="">Select State / Union Territory</option>
+              <option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option><option>Bihar</option>
+              <option>Chhattisgarh</option><option>Goa</option><option>Gujarat</option><option>Haryana</option><option>Himachal Pradesh</option>
+              <option>Jharkhand</option><option>Karnataka</option><option>Kerala</option><option>Madhya Pradesh</option><option>Maharashtra</option>
+              <option>Manipur</option><option>Meghalaya</option><option>Mizoram</option><option>Nagaland</option><option>Odisha</option>
+              <option>Punjab</option><option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option><option>Telangana</option>
+              <option>Tripura</option><option>Uttar Pradesh</option><option>Uttarakhand</option><option>West Bengal</option>
+              <option>Andaman and Nicobar Islands</option><option>Chandigarh</option><option>Dadra and Nagar Haveli and Daman and Diu</option>
+              <option>Delhi</option><option>Jammu and Kashmir</option><option>Ladakh</option><option>Lakshadweep</option><option>Puducherry</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row"><label class="small">House No., Building Name</label><input id="inpHouse" type="text" placeholder="House No., Building Name" required></div>
+        <div class="form-row"><label class="small">Road name, Area, Colony</label><textarea id="inpRoad" placeholder="Road name, Area, Colony" rows="3" style="resize:none"></textarea></div>
+      </form>
+      <div style="margin-top:10px;color:#666;font-size:13px">यह डेमो फॉर्म है — Save पर address ।</div>
+    </div>
+
+    <div class="save-bar"><button id="saveAddressBtn" class="save-btn">Save Address</button></div>
+  </div>
+</div>
+
+<!-- Order Summary -->
+<div id="orderSummary">
+  <div class="os-inner">
+    <div class="os-top">
+      <div class="back" id="osBack">←</div>
+      <div style="font-weight:700">Order Summary</div>
+    </div>
+
+    <div class="os-scroll" id="osScroll">
+      <div class="prod-row">
+        <img id="osProdImg" src="" alt="Product">
+        <div style="flex:1">
+          <div id="osProdTitle" style="font-weight:700"></div>
+          <div id="osProdSpec" style="color:#666;font-size:13px;margin-top:6px"></div>
+          <div style="margin-top:8px;font-weight:800" id="osProdPrice"></div>
+        </div>
+      </div>
+
+      <div class="addr-box">
+        <div style="font-weight:700">Deliver to</div>
+        <div id="osAddrText" style="margin-top:8px;color:#333;white-space:pre-wrap"></div>
+      </div>
+
+      <div class="price-box">
+        <div style="font-weight:700;margin-bottom:8px">Price Details</div>
+        <div class="line"><div>Price (1 item)</div><div id="linePrice"></div></div>
+        <div class="line"><div>Discount</div><div id="lineDiscount"></div></div>
+        <div class="line"><div>Delivery Charges</div><div id="lineDelivery"></div></div>
+        <div class="line total"><div>Amount Payable</div><div id="lineTotal"></div></div>
+      </div>
+    </div>
+
+    <div class="continue-bar"><button id="continuePayment" class="continue-btn">Continue to Payment</button></div>
+  </div>
+</div>
+
+<!-- Payment Page (PhonePe + Paytm only) -->
+<div id="paymentPage">
+  <div class="pay-inner">
+    <div class="pay-top">
+      <div class="back" id="payBack">←</div>
+      <div style="font-weight:700">Payments</div>
+    </div>
+
+    <div class="pay-steps">
+      <div class="progress">
+        <div class="prog-item"><div class="circle">✓</div><div style="font-size:13px;color:var(--mut)">Address</div></div>
+        <div style="flex:1;height:2px;background:#dbeafe;margin:0 8px"></div>
+        <div class="prog-item"><div class="circle">✓</div><div style="font-size:13px;color:var(--mut)">Order Summary</div></div>
+        <div style="flex:1;height:2px;background:#dbeafe;margin:0 8px"></div>
+        <div class="prog-item"><div class="circle active">3</div><div style="font-size:13px;color:var(--mut)">Payment</div></div>
+      </div>
+    </div>
+
+    <div class="pay-scroll" id="payScroll">
+      <div class="pay-timer" id="payTimer">05min 59sec</div>
+
+      <div class="pay-label">PAY ONLINE (PhonePe/Paytm/Scan) <span style="opacity:.6"></span></div>
+      <div class="methods" id="methods">
+  <!-- PhonePe -->
+  <div class="method-card" data-method="phonepe" onclick="selectPay('phonepe', this)">
+    <img src="https://i.postimg.cc/PrtSZTv9/images.png" alt="PhonePe">
+    <div class="mtext">PhonePe</div>
+  </div>
+
+  <!-- Paytm -->
+  <div class="method-card" data-method="paytm" onclick="selectPay('paytm', this)">
+    <img src=https://i.postimg.cc/90v8y73h/unnamed.png alt="Paytm">
+    <div class="mtext">Paytm</div>
+  </div>
+
+  <!-- Google Pay -->
+  <div class="method-card" data-method="gpay" onclick="selectPay('gpay', this)">
+    <img src=https://i.postimg.cc/DZ7Pkch0/images-2.jpg alt="Google Pay">
+    <div class="mtext">Google Pay</div>
+  </div>
+
+<div 
+  </div>
+</div>
+</div>
+      <div class="pay-action">
+        <button id="payNow" class="pay-cta">PAY</button>
+      </div>
+      <div id="qrContainer" aria-hidden="true" style="display:none;text-align:center;margin-top:20px;">
+        <img src="https://i.postimg.cc/MTkxnXSk/IMG-20250906-145118.png" alt="My QR Code" style="width:220px;height:220px;margin:auto">
+        <div id="qrNote">Scan & Pay</div>
+      </div>
+
+
+      <div class="price-details" aria-hidden>
+        <div class="row"><div>PRICE DETAILS</div><div></div></div>
+        <div class="row"><div>Price (1 item)</div><div id="pd_price">₹0</div></div>
+        <div class="row"><div>Delivery Charges</div><div style="color:var(--green)">Free Delivery</div></div>
+        <div class="row"><div>Amount Payable</div><div id="pd_total">₹0</div></div>
+      </div>
+
+      <div class="pay-bottom-space"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal">
+  <div class="modal">
+    <div class="modal-inner" style="background:#fff;border-radius:8px;padding:16px;max-width:420px;margin:auto;text-align:center">
+      <h3>Order Placed Successfully 🎉</h3>
+      <p id="successText" style="color:#333;font-size:14px">Thank you — your order is placed .</p>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="successClose" style="flex:1;padding:10px;border-radius:6px;border:0;background:#e0e0e0;cursor:pointer">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="Tag"></div>
+
+<script>
+  // ---------- Timer ----------
+  (function(){
+    var mm=7, ss=48; function tick(){ var t=document.getElementById('timer'); if(!t) return; t.textContent=(mm<10?'0'+mm:mm)+':'+(ss<10?'0'+ss:ss); if(--ss<0){ ss=59; if(--mm<0){ mm=7; ss=48; } } } tick(); setInterval(tick,1000);
+  })();
+
+  // ---------- Products ----------
+  const products = [
+    {id:1, title:'APPLE iPhone 14 Pro', brand:'Apple', model:'iPhone 14 Pro', cat:'Mobile', price:1.00, mrp:144900, rating:4.7, rcount:12121, img:'https://i.postimg.cc/SxM60g2f/images-3.jpg', desc:'A16 Bionic, ProMotion 120Hz, Dynamic Island, Pro cameras with Photonic Engine.\n\nमुख्य विशेषताएँ:\n• 6.1\" OLED 120Hz\n• 48MP Main + 12MP Ultra-Wide\n• A16 Bionic\n• iOS updates', hi:['6.1\" OLED 120Hz','48MP Main + 12MP Ultra-Wide','A16 Bionic','iOS Updates for years'], warr:'1 Year Brand Warranty', del:'Free Delivery in 2 Days'},
+    {id:2, title:'APPLE iPhone 14 Plus', brand:'Apple', model:'iPhone 14 Plus', cat:'Mobile', price:999.00, mrp:159900, rating:4.6, rcount:10245, img:'https://i.postimg.cc/j5b6sy0n/images-4.jpg', desc:'Bigger 6.7-inch display with superb battery life and cinematic video.', hi:['6.7\" OLED','12MP Dual Camera','A15 Bionic','Crash Detection'], warr:'1 Year Brand Warranty', del:'Free Delivery in 2 Days'},
+    {id:3, title:'SAMSUNG Galaxy S23', brand:'Samsung', model:'Galaxy S23', cat:'Mobile', price:499.00, mrp:79999, rating:4.5, rcount:8451, img:'https://i.postimg.cc/0Nk7bH12/images-5.jpg', desc:'Snapdragon flagship with stunning cameras and long battery.', hi:['6.1\" 120Hz AMOLED','50MP Triple Camera','Snapdragon 8 Gen 2','IP68'], warr:'1 Year Brand Warranty', del:'Free Delivery in 2 Days'},
+    {id:4, title:'OnePlus 11R 5G', brand:'OnePlus', model:'11R', cat:'Mobile', price:499.00, mrp:39999, rating:4.4, rcount:9302, img:'https://i.postimg.cc/yYNCNHvr/images-6.jpg', desc:'Performance champ with smooth OxygenOS and fast charging.', hi:['120Hz Fluid AMOLED','50MP Sony IMX890','Snapdragon 8+ Gen1','100W SUPERVOOC'], warr:'1 Year', del:'Free Delivery in 2 Days'},
+    {id:5, title:'Google Pixel 7 (Snow, 128GB)', brand:'Google', model:'Pixel 7', cat:'Mobile', price:699.00, mrp:59999, rating:4.3, rcount:6540, img:'https://i.postimg.cc/ncqSZwtw/images-7.jpg', desc:'Best-in-class cameras with clean Android and Tensor G2.', hi:['6.3\" 90Hz OLED','50MP + 12MP','Tensor G2','Face + Fingerprint Unlock'], warr:'1 Year', del:'Free Delivery in 2 Days'},
+    {id:6, title:'MOTOROLA Edge 40', brand:'Motorola', model:'Edge 40', cat:'Mobile', price:499.00, mrp:34999, rating:4.2, rcount:4120, img:'https://i.postimg.cc/G2ZznvgC/images-8.jpg', desc:'Slim design, pOLED display and clean software.', hi:['144Hz pOLED','50MP OIS','Dimensity 8020','68W TurboPower'], warr:'1 Year', del:'Free Delivery in 2 Days'},
+    {id:7, title:'Apple MacBook Air (M1)', brand:'Apple', model:'MacBook Air M1', cat:'Laptop', price:789.00, mrp:92900, rating:4.8, rcount:21032, img:'https://i.postimg.cc/15Sc0mLJ/images-9.jpg', desc:'Legendary battery life and silent performance with M1.', hi:['13.3\" Retina','8-core CPU','Magic Keyboard','SSD storage'], warr:'1 Year', del:'Free Delivery'},
+    {id:8, title:'Lenovo IdeaPad Slim 3', brand:'Lenovo', model:'Slim 3', cat:'Laptop', price:700.00, mrp:54990, rating:4.1, rcount:3892, img:'https://i.postimg.cc/8Cf6Q927/81-SKGg-J9y-L.jpg', desc:'Everyday laptop with latest Ryzen/Intel options.', hi:['FHD Display','8GB RAM','512GB SSD','Backlit Keyboard'], warr:'1 Year', del:'Free Delivery'},
+    {id:9, title:'Vivo T2 5G', brand:'Vivo', model:'T2 5G', cat:'Mobile', price:299.00, mrp:28999, rating:4.2, rcount:5721, img:'https://i.postimg.cc/JzGyZS4p/images-10.jpg', desc:'Stylish 5G phone with AMOLED and OIS camera.', hi:['90Hz AMOLED','64MP OIS','Snapdragon 695','44W Charging'], warr:'1 Year', del:'Free Delivery in 2 Days'},
+    {id:10, title:'Canon EOS 200D DSLR', brand:'Canon', model:'EOS 200D', cat:'Camera', price:690.00, mrp:52999, rating:4.5, rcount:2211, img:'https://i.postimg.cc/431Tdxkq/images-11.jpg', desc:'Lightweight DSLR with Dual Pixel AF.', hi:['24.1MP APS-C','4K/FullHD','Wi-Fi & BT','Vari-angle LCD'], warr:'2 Years', del:'Free Delivery'},
+    {id:11, title:'Apple Watch SE (GPS)', brand:'Apple', model:'Watch SE', cat:'Wearable', price:499.00, mrp:32900, rating:4.6, rcount:8120, img:'https://i.postimg.cc/RVcm8Rpv/images-12.jpg', desc:'Essential Apple Watch experience with crash detection.', hi:['Retina Display','Swimproof','Fitness+','Family Setup'], warr:'1 Year', del:'Free Delivery'},
+    {id:12, title:'boAt Airdopes 141', brand:'boAt', model:'Airdopes 141', cat:'Audio', price:99.00, mrp:4490, rating:4.2, rcount:51230, img:'https://i.postimg.cc/TPsBhLNk/images-13.jpg', desc:'Bass-heavy TWS with long battery.', hi:['42H Playback','ENx Mic','IWP Tech','IPX4'], warr:'1 Year', del:'Free Delivery'},
+    {id:13, title:'Haier 1.5 Ton 5★ Inverter AC', brand:'Haier', model:'HSU18', cat:'AC', price:590.00, mrp:48990, rating:4.3, rcount:1209, img:'https://i.postimg.cc/hP0wT33Q/images-14.jpg', desc:'Energy efficient inverter AC for medium rooms.', hi:['1.5 Ton','5 Star','Copper Condenser','Self Clean'], warr:'1 Year + 10Y compressor', del:'Free Delivery'},
+    {id:14, title:'LG 7kg Front Load', brand:'LG', model:'FHM1207', cat:'Washing Machine', price:690.00, mrp:38990, rating:4.4, rcount:2980, img:'https://i.postimg.cc/d0CjmhtN/images-15.jpg', desc:'Inverter Direct Drive with steam and hygienic wash.', hi:['7 kg','1200 RPM','Inverter Motor','Smart Diagnosis'], warr:'2 Years + 10Y motor', del:'Free Delivery'},
+    {id:15, title:'Mi 43″ 4K Smart TV', brand:'Xiaomi', model:'Mi TV 5X 43', cat:'TV', price:490.00, mrp:39999, rating:4.3, rcount:7421, img:'https://i.postimg.cc/VsgBRQmw/images-16.jpg', desc:'Bezel-less 4K HDR with PatchWall.', hi:['43\" 4K HDR','Dolby Audio','Vivid Picture Engine','Android TV'], warr:'1 Year', del:'Free Delivery'},
+    {id:16, title:'Sony WH-CH520', brand:'Sony', model:'WH-CH520', cat:'Audio', price:199.00, mrp:7990, rating:4.4, rcount:9540, img:'https://i.postimg.cc/02L6GcMx/images-17.jpg', desc:'Lightweight on-ear with multipoint and long battery.', hi:['50H Battery','Fast Pair','Multipoint','EQ via App'], warr:'1 Year', del:'Free Delivery'},
+    {id:17, title:'OnePlus Buds Z2', brand:'OnePlus', model:'Buds Z2', cat:'Audio', price:199.00, mrp:4999, rating:4.3, rcount:6820, img:'https://i.postimg.cc/KY5R2b9v/images-18.jpg', desc:'ANC TWS with punchy bass.', hi:['Active Noise Cancel','38H Battery','Dolby Atmos','Flash Charge'], warr:'1 Year', del:'Free Delivery'},
+    {id:18, title:'Mi Power Bank 20000mAh', brand:'Xiaomi', model:'PB20000', cat:'Power', price:99.00, mrp:2999, rating:4.4, rcount:12220, img:'https://i.postimg.cc/J0715Bmb/H6240538eb6d6473fb2c18271a48e657f-U.jpg', desc:'High-capacity power bank with dual output.', hi:['20000mAh','18W Fast Charge','Dual Output','Low-current mode'], warr:'6 Months', del:'Free Delivery'},
+    {id:19, title:'Redgear Mechanical Keyboard', brand:'Redgear', model:'MK881', cat:'Accessory', price:99.00, mrp:3999, rating:4.1, rcount:3220, img:'https://i.postimg.cc/WzZdxkCx/images-20.jpg', desc:'Tactile mechanical keyboard for gaming.', hi:['Blue Switches','Aluminum Top','Windows Lock','LED Backlight'], warr:'1 Year', del:'Free Delivery'},
+    {id:20, title:'TP-Link Dual-Band Wi-Fi Router', brand:'TP-Link', model:'Archer A6', cat:'Networking', price:150.00, mrp:2999, rating:4.2, rcount:8422, img:'https://i.postimg.cc/T3fKHh9H/images-21.jpg', desc:'Stable dual-band AC1200 router with MU-MIMO.', hi:['AC1200','Dual Band 2.4/5GHz','MU-MIMO','Gigabit Ports'], warr:'3 Years', del:'Free Delivery'}
+  ];
+
+  // ---------- Utilities ----------
+  const el = sel => document.querySelector(sel);
+  function fmtINR(n){ return '₹ ' + n.toLocaleString('en-IN'); }
+  function makeStars(r){ const full = Math.round(r); return '★★★★★'.slice(0,full) + '☆☆☆☆☆'.slice(full); }
+
+  // ---------- Render Grid ----------
+  const grid = el('#grid');
+  function renderGrid(list){
+    grid.innerHTML = '';
+    list.forEach(p=>{
+      const off = p.mrp?Math.round((1 - p.price/p.mrp)*100):0;
+      const card = document.createElement('article');
+      card.className='card';
+      card.setAttribute('role','button');
+      card.setAttribute('aria-label', p.title);
+      card.innerHTML = `
+        <img class="pimg" src="${p.img}" alt="${p.title}">
+        <h4 class="title">${p.title}</h4>
+        <div class="off">${off}% Off <span class="mrp">${fmtINR(p.mrp)}</span></div>
+        <div class="price">${fmtINR(p.price)}</div>
+        <div class="assured">Assured</div>
+      `;
+      card.addEventListener('click', ()=> openDetail(p.id));
+      grid.appendChild(card);
+    });
+  }
+  renderGrid(products);
+
+  // ---------- Search ----------
+  el('#searchInput').addEventListener('input', (e)=>{
+    const q = e.target.value.toLowerCase().trim();
+    if(!q){ renderGrid(products); return; }
+    const f = products.filter(p=> (p.title+' '+p.brand+' '+p.model+' '+p.cat).toLowerCase().includes(q));
+    renderGrid(f.length?f:products);
+  });
+
+  // ---------- State ----------
+  let currentProduct = null;
+  let lastAddress = null;
+  let cartCount = 0;
+  let selectedPayMethod = null;
+  el('#cartCount').textContent = cartCount;
+
+  // ---------- Detail logic ----------
+  const detailOverlay = el('#detailOverlay');
+  function openDetail(id){
+    const p = products.find(x=>x.id===id); if(!p) return;
+    currentProduct = p;
+    el('#pdImg').src = p.img; el('#pdImg').alt = p.title;
+    el('#pdTitle').textContent = p.title;
+    el('#pdBadge').textContent = p.rating.toFixed(1)+'★';
+    el('#pdStars').textContent = makeStars(p.rating);
+    el('#pdRcount').textContent = `(${p.rcount.toLocaleString('en-IN')} रेटिंग्स)`;
+    el('#pdPrice').textContent = fmtINR(p.price);
+    el('#pdMrp').textContent = fmtINR(p.mrp);
+    el('#pdOff').textContent = p.mrp?Math.round((1 - p.price/p.mrp)*100) + '% off':'';
+    el('#pdBrand').textContent = p.brand; el('#pdModel').textContent = p.model;
+    el('#pdDesc').textContent = p.desc;
+    el('#spBrand').textContent = p.brand; el('#spModel').textContent = p.model; el('#spCat').textContent = p.cat; el('#spWarr').textContent = p.warr; el('#spDel').textContent = p.del;
+    const hi = el('#pdHi'); hi.innerHTML=''; (p.hi||[]).forEach(h=>{ const li=document.createElement('li'); li.textContent=h; hi.appendChild(li); });
+    detailOverlay.classList.add('active');
+    const s = el('#pdScroll'); if(s) s.scrollTop = 0;
+  }
+  el('#detailBack').addEventListener('click', ()=>{ detailOverlay.classList.remove('active'); });
+
+  // ---------- Cart / Buy ----------
+  el('#detailAdd').addEventListener('click', ()=>{
+    cartCount++; el('#cartCount').textContent = cartCount;
+    alert('कार्ट में जोड़ा गया: ' + (currentProduct?currentProduct.title:'Item'));
+  });
+
+  el('#detailBuy').addEventListener('click', ()=>{
+    detailOverlay.classList.remove('active');
+    openCheckout();
+  });
+
+  // ---------- Checkout (Address) ----------
+  const checkout = el('#checkout');
+  function openCheckout(){
+    el('#addressForm').reset();
+    checkout.classList.add('active');
+    const cs = checkout.querySelector('.co-scroll'); if(cs) cs.scrollTop = 0;
+  }
+  el('#coBack').addEventListener('click', ()=>{ checkout.classList.remove('active'); });
+
+  el('#saveAddressBtn').addEventListener('click', ()=>{
+    const name = el('#inpName').value.trim();
+    const mob = el('#inpMobile').value.trim();
+    const pin = el('#inpPincode').value.trim();
+    const city = el('#inpCity').value.trim();
+    const state = el('#inpState').value;
+    const house = el('#inpHouse').value.trim();
+    const road = el('#inpRoad').value.trim();
+
+    if(!name){ alert('Full name भरें'); return; }
+    if(!/^[0-9]{10}$/.test(mob)){ alert('Valid 10-digit mobile number डालें'); return; }
+    if(!pin){ alert('Pincode डालें'); return; }
+    if(!city){ alert('City डालें'); return; }
+    if(!state){ alert('State चुनें'); return; }
+    if(!house){ alert('House No./Building डालें'); return; }
+
+    lastAddress = {name,mob,pin,city,state,house,road};
+    checkout.classList.remove('active');
+    openOrderSummary(lastAddress);
+  });
+
+  // ---------- Order Summary ----------
+  const orderSummary = el('#orderSummary');
+  function openOrderSummary(addr){
+    if(!currentProduct){
+      alert('कोई उत्पाद चुनें पहले');
+      return;
+    }
+    el('#osProdImg').src = currentProduct.img;
+    el('#osProdTitle').textContent = currentProduct.title;
+    el('#osProdSpec').textContent = currentProduct.brand + ' • ' + currentProduct.model;
+    el('#osProdPrice').textContent = fmtINR(currentProduct.price);
+
+    const addrText = `${addr.name}, ${addr.house}${addr.road?(', ' + addr.road):''}, ${addr.city} - ${addr.pin}\n${addr.state}\nMobile: ${addr.mob}`;
+    el('#osAddrText').textContent = addrText;
+
+    const itemPrice = currentProduct.price;
+    const mrp = currentProduct.mrp || itemPrice;
+    const discountAmt = mrp - itemPrice;
+    const delivery = 0;
+    const total = itemPrice + delivery;
+
+    el('#linePrice').textContent = fmtINR(itemPrice);
+    el('#lineDiscount').textContent = '-' + fmtINR(discountAmt);
+    el('#lineDelivery').textContent = delivery === 0 ? 'Free' : fmtINR(delivery);
+    el('#lineTotal').textContent = fmtINR(total);
+
+    orderSummary.classList.add('active');
+    const os = el('#osScroll'); if(os) os.scrollTop = 0;
+  }
+  el('#osBack').addEventListener('click', ()=>{ orderSummary.classList.remove('active'); });
+
+  el('#continuePayment').addEventListener('click', ()=>{
+    orderSummary.classList.remove('active');
+    openPayment();
+  });
+
+  // ---------- Payment Page ----------
+const paymentPage = el('#paymentPage');
+function openPayment(){
+  // set price details
+  if(!currentProduct){ alert('कोई उत्पाद चुनें पहले'); return; }
+  const price = currentProduct.price;
+  el('#pd_price').textContent = fmtINR(price);
+  el('#pd_total').textContent = fmtINR(price);
+  // reset selection
+  selectedPayMethod = null;
+  document.querySelectorAll('.method-card').forEach(mc=>mc.classList.remove('active'));
+  paymentPage.classList.add('active');
+  // start timer
+  startPayTimer(5,59);
+  const ps = el('#payScroll'); if(ps) ps.scrollTop = 0;
+}
+el('#payBack').addEventListener('click', ()=>{ paymentPage.classList.remove('active'); });
+
+function selectPay(method, node){
+  selectedPayMethod = method;
+  document.querySelectorAll('.method-card').forEach(mc=>mc.classList.remove('active'));
+  node.classList.add('active');
+}
+
+el('#payNow').addEventListener('click', ()=>{
+  if(!selectedPayMethod){
+    alert('कृपया भुगतान का तरीका चुनें (PhonePe, Paytm या GPay)');
+    return;
+  }
+  if(!currentProduct){
+    alert('कोई उत्पाद नहीं चुना गया।');
+    return;
+  }
+  document.getElementById('qrContainer').style.display = 'block';
+});
+  function startPayTimer(m,s){
+    clearInterval(payTimerInterval);
+    const elTimer = document.getElementById('payTimer');
+    let mm = m, ss = s;
+    elTimer.textContent = `${mm.toString().padStart(2,'0')}min ${ss.toString().padStart(2,'0')}sec`;
+    payTimerInterval = setInterval(()=>{
+      if(ss===0){
+        if(mm===0){ clearInterval(payTimerInterval); elTimer.textContent = '00min 00sec'; return; }
+        mm--; ss = 59;
+      } else ss--;
+      elTimer.textContent = `${mm.toString().padStart(2,'0')}min ${ss.toString().padStart(2,'0')}sec`;
+    },1000);
+  }
+
+  // ---------- Success Modal ----------
+  function showSuccess(method){
+    const successModal = el('#successModal');
+    const txt = el('#successText');
+    txt.textContent = `Order placed  using ${method}. Product: ${currentProduct?currentProduct.title:'-'}.\nAmount: ${currentProduct?fmtINR(currentProduct.price):'-'}`;
+    successModal.style.display = 'flex';
+  }
+  el('#successClose').addEventListener('click', ()=>{
+    el('#successModal').style.display = 'none';
+    // reset to home
+    orderSummary.classList.remove('active');
+    checkout.classList.remove('active');
+    detailOverlay.classList.remove('active');
+    paymentPage.classList.remove('active');
+    window.scrollTo(0,0);
+  });
+
+  // Close overlays on Escape
+  window.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){
+      const s = el('#successModal'); if(s && s.style.display==='flex'){ s.style.display='none'; return; }
+      if(paymentPage.classList.contains('active')) paymentPage.classList.remove('active');
+      else if(orderSummary.classList.contains('active')) orderSummary.classList.remove('active');
+      else if(checkout.classList.contains('active')) checkout.classList.remove('active');
+      else if(detailOverlay.classList.contains('active')) detailOverlay.classList.remove('active');
+    }
+  });
+
+  // optional hash route to open checkout
+  window.addEventListener('hashchange', ()=>{ if(location.hash === '#/checkout') openCheckout(); });
+
+</script>
+
+  
+
+    <button onclick="downloadQR()"
+
+  </div>
+
+</body>
+</html>
